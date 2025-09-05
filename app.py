@@ -1,15 +1,15 @@
-# app.py
 from flask import Flask, render_template, request, jsonify
 import joblib
 import os
 
 app = Flask(__name__)
 
-# Use the specific paths
-MODEL_PATH = r'C:\Users\User\OneDrive\Desktop\SEMESTER 6\CSC575\prototype\sentiment_model.pkl'
-VECTORIZER_PATH = r'C:\Users\User\OneDrive\Desktop\SEMESTER 6\CSC575\prototype\tfidf_vectorizer.pkl'
+# Get absolute path to current directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
+# Model and vectorizer paths (relative to project root)
+MODEL_PATH = os.path.join(BASE_DIR, "sentiment_model.pkl")
+VECTORIZER_PATH = os.path.join(BASE_DIR, "tfidf_vectorizer.pkl")
 
 try:
     # Load the model and vectorizer
