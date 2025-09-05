@@ -1,0 +1,152 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Review Sentiment</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .tiktok-gradient {
+            background: linear-gradient(45deg, #00f2ea, #ff0050);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradient 3s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Rest of the HTML remains the same -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <div class="flex items-center justify-center space-x-3 mb-4">
+                <i class="fab fa-tiktok text-5xl tiktok-gradient"></i>
+                <h1 class="text-4xl font-bold">TikTok Sentiment</h1>
+            </div>
+            <p class="text-gray-400">Analyze your review's sentiment instantly</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="max-w-xl mx-auto">
+            <div class="bg-gray-800 rounded-2xl p-6 shadow-xl">
+                <!-- Input Form -->
+                <form id="reviewForm" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">What's your review? 💭</label>
+                        <textarea 
+                            name="review" 
+                            id="review"
+                            class="w-full p-4 rounded-xl bg-gray-700 border border-gray-600 focus:border-pink-500 focus:ring-2 focus:ring-pink-500 transition-all text-white placeholder-gray-400"
+                            rows="4"
+                            placeholder="Type your review here..."
+                            required
+                        ></textarea>
+                    </div>
+                    
+                    <button 
+                        type="submit"
+                        class="w-full bg-gradient-to-r from-blue-400 to-pink-500 text-white font-bold py-3 px-6 rounded-xl hover:opacity-90 transition-all animate-gradient"
+                    >
+                        Analyze Sentiment
+                    </button>
+                </form>
+
+                <!-- Loading Spinner -->
+                <div id="loading" class="hidden mt-6 text-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500 mx-auto"></div>
+                </div>
+
+                <!-- Result Section -->
+                <div id="result" class="hidden mt-6">
+                    <div class="bg-gray-700 rounded-xl p-6">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <span class="text-xl font-medium">Sentiment:</span>
+                                    <span id="sentimentResult" class="text-xl font-bold"></span>
+                                </div>
+                                <span id="emojiResult" class="text-3xl"></span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-gray-400">Confidence:</span>
+                                <span id="confidenceResult" class="font-medium text-pink-500"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="error" class="hidden mt-6 p-4 bg-red-900/50 rounded-xl text-red-200">
+                    <p id="errorMessage"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('reviewForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Show loading, hide results and error
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+            
+            const formData = new FormData();
+            formData.append('review', document.getElementById('review').value);
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show result section
+                    document.getElementById('result').classList.remove('hidden');
+                    
+                    // Update results
+                    document.getElementById('sentimentResult').textContent = data.sentiment;
+                    document.getElementById('confidenceResult').textContent = data.confidence;
+                    document.getElementById('emojiResult').textContent = data.emoji;
+                    
+                    // Add color based on sentiment
+                    const sentimentResult = document.getElementById('sentimentResult');
+                    sentimentResult.className = 'text-xl font-bold';
+                    if (data.sentiment === 'Positive') {
+                        sentimentResult.classList.add('text-green-400');
+                    } else if (data.sentiment === 'Negative') {
+                        sentimentResult.classList.add('text-red-400');
+                    } else {
+                        sentimentResult.classList.add('text-yellow-400');
+                    }
+                } else {
+                    // Show error
+                    document.getElementById('error').classList.remove('hidden');
+                    document.getElementById('errorMessage').textContent = data.error;
+                }
+            } catch (error) {
+                // Show error
+                document.getElementById('error').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 'An error occurred while analyzing the sentiment.';
+            } finally {
+                // Hide loading
+                document.getElementById('loading').classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
